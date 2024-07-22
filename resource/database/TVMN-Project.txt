@@ -1,0 +1,111 @@
+Enum userRole {
+  admin
+  user
+}
+
+Enum layoutPosition {
+  Layout_1
+  Layout_2
+  Layout_3
+  Layout_4
+  Layout_5
+}
+
+Enum CollectionType {
+  blog
+  image
+  banner
+  title
+  video
+  schedule
+}
+
+Enum CollectionInLayoutType {
+  collection
+  schedule
+}
+
+Enum scheduleType {
+  lichCongTac
+  lichTruc
+}
+
+Table User {
+  id ObjectId [primary key]
+  role userRole
+  fullName string
+  username string
+  password string
+  departmentId ObjectId
+  createBy ObjectId
+  lastLogin timestamp
+}
+
+Ref: User.id - User.createBy
+
+Table Department {
+  id ObjectId [primary key]
+  title string
+  name string
+  slogan string
+  image PathFile
+  delayTime number
+  layoutId Array(ObjectId)
+}
+
+Ref: User.departmentId - Department.id  
+
+Table Layout {
+  id ObjectId [primary key]
+  position layoutPosition
+  data Array(ObjectId)
+}
+
+Ref: Department.layoutId < Layout.id
+
+Table Collection {
+  id ObjectId [primary key]
+  type CollectionType
+  title string
+  description string
+  content string
+  updateAt timestamp
+  createBy ObjectId
+  from ObjectId
+}
+
+Ref: Collection.createBy - User.id
+Ref: Collection.from - Department.id
+
+Table CollectionInLayout {
+  id ObjectId
+  addBy userRole
+  time Array(string)
+  type CollectionInLayoutType
+}
+
+Ref: CollectionInLayout.id - Collection.id
+Ref: CollectionInLayout.id > Layout.data
+
+Table Schedule {
+  id ObjectId [primary key]
+  title string
+  type scheduleType
+  startAt timestamp
+  endAt timestamp
+  description string
+  leader string
+  from ObjectId
+}
+
+Ref: Schedule.from - Department.id
+
+Table Screen {
+  id ObjectId [primary key]
+  name string
+  lastCheck timestamp
+  isActive boolean
+  from ObjectId
+}
+
+Ref: Screen.from - Department.id
