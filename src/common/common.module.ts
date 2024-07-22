@@ -7,7 +7,7 @@ import { MyJwtModule } from './my-jwt/my-jwt.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '.env.development.local'],
+      envFilePath: ['.env/.env', '.env/development.env'],
     }),
     DbModule,
     MyJwtModule,
