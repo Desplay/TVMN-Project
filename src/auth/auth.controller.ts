@@ -4,37 +4,39 @@ import {
   ForbiddenException,
   Param,
   Post,
-  UseGuards,
+  Req,
   UsePipes,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { LoginDTO } from './dto/login.dto';
 import { LoginResponseDTO } from './dto/login.response.dto';
 import { AuthPipe } from './pipe/auth.pipe';
 import { ApiResponses } from 'src/common/decorators/httpExceptions.decorator';
 import { CustomResponseType } from 'src/common/enum/serviceResponse.enum';
 import { SignUpDTO } from './dto/signup.dto';
-import { Roles } from 'src/common/decorators/role.decorator';
-import { UserRole } from 'src/user/enum/userRole.enum';
-import { RolesGuard } from './guard/roles.guard';
+import {
+  AdminAPIDescription,
+  PublicAPIDescription,
+} from 'src/common/decorators/api.decorator';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 @ApiConsumes('application/json')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiResponses('Đăng nhập vào hệ thống', [
-    {
-      status: 200,
-      description: 'Đăng nhập thành công',
-      type: LoginResponseDTO,
-    },
-    { status: 400, description: 'Sai thông tin tài khoản hoặc mật khẩu' },
-    { status: 401, description: 'Tài khoản chưa được thêm vào phòng ban' },
-  ])
+  @PublicAPIDescription({
+    summary: 'Đăng nhập',
+    descriptions: [
+      {
+        status: 200,
+        description: 'Đăng nhập thành công',
+        type: LoginResponseDTO,
+      },
+    ],
+  })
   @UsePipes(AuthPipe)
   async login(@Body() input: LoginDTO): Promise<LoginResponseDTO> {
     const result = await this.authService.login(input);
@@ -45,19 +47,22 @@ export class AuthController {
   }
 
   @Post('signup')
-  @ApiBearerAuth()
-  @ApiResponses('Admin tạo tài khoản mới', [
-    {
-      status: 200,
-      description: 'Tạo tài khoản thành công',
-      type: LoginResponseDTO,
-    },
-    { status: 400, description: 'Tài khoản đã tồn tại' },
-  ])
-  @Roles([UserRole.ADMIN])
-  @UseGuards(RolesGuard)
-  async signup(@Body() input: SignUpDTO): Promise<LoginResponseDTO> {
-    const result = await this.authService.signup(input);
+  @AdminAPIDescription({
+    summary: 'Đăng ký tài khoản (Admin)',
+    descriptions: [
+      {
+        status: 200,
+        description: 'Đăng ký thành công',
+        type: LoginResponseDTO,
+      },
+      { status: 400, description: 'Email đã tồn tại' },
+    ],
+  })
+  async signup(
+    @Req() req: any,
+    @Body() input: SignUpDTO,
+  ): Promise<LoginResponseDTO> {
+    const result = await this.authService.signup(req, input);
     if (result.status === CustomResponseType.ERROR) {
       throw new ForbiddenException(result.message);
     }
@@ -71,7 +76,6 @@ export class AuthController {
       description: 'Lấy lại token thành công',
       type: LoginResponseDTO,
     },
-    { status: 400, description: 'Token không hợp lệ' },
   ])
   async refreshToken(
     @Param('token') input: string,

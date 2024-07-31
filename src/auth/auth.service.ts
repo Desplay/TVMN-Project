@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO } from './dto/login.dto';
 import { User, UserInput } from 'src/user/entities/user.entity';
 import { MyJwtService } from 'src/common/my-jwt/my-jwt.service';
-import { TokenType } from './enum/tokenType.enum';
+import { TokenType } from './entities/tokenType.enum';
 import { CustomResponseType } from 'src/common/enum/serviceResponse.enum';
 import { ServiceResponse } from 'src/common/entities/serviceResponse.entity';
 import { UserRole } from 'src/user/enum/userRole.enum';
@@ -45,8 +45,9 @@ export class AuthService {
     };
   }
 
-  async signup(input: SignUpDTO): Promise<ServiceResponse> {
-    const user_created = await this.userService.create(input);
+  async signup(req: any, input: SignUpDTO): Promise<ServiceResponse> {
+    const adminId = req.user.userId;
+    const user_created = await this.userService.create(input, adminId);
     if (user_created.status === CustomResponseType.ERROR) {
       return user_created;
     }
@@ -61,6 +62,7 @@ export class AuthService {
     try {
       payload = await this.myJwtService.verifyToken(refreshToken);
     } catch (err) {
+      Logger.error('AuthService/refreshToken', err.message);
       return {
         status: CustomResponseType.ERROR,
         message: err.message,
@@ -72,8 +74,13 @@ export class AuthService {
         message: 'Token không hợp lệ',
       };
     }
-    const user = await this.userService.throwUserByUserId(payload.userId);
-
+    const userResponse = await this.userService.throwUserByUserId(
+      payload.userId,
+    );
+    if (userResponse.status === CustomResponseType.ERROR) {
+      return userResponse;
+    }
+    const user = userResponse.data;
     if (!user.refreshToken || refreshToken !== user.refreshToken) {
       return {
         status: CustomResponseType.ERROR,
