@@ -5,19 +5,13 @@ import {
   ForbiddenException,
   Get,
   Param,
-  Patch,
   Put,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { ApiTags } from '@nestjs/swagger';
 import { UserDTO, UserInputDTO } from './dto/user.dto';
 import { UserToUserDTO } from './user.pipe';
-import { Roles } from 'src/common/decorators/role.decorator';
-import { UserRole } from './enum/userRole.enum';
-import { ApiResponses } from 'src/common/decorators/httpExceptions.decorator';
 import {
   AdminAndUserAPIDescription,
   AdminAPIDescription,

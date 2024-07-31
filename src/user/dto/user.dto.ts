@@ -2,14 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../enum/userRole.enum';
 import { Types } from 'mongoose';
 
-export class User {
-  @ApiProperty({
-    type: String,
-    enum: UserRole,
-    default: UserRole.USER,
-  })
-  role: UserRole;
-
+class User {
   @ApiProperty({
     type: String,
     required: true,
@@ -31,6 +24,24 @@ export class User {
   fullName: string;
 
   @ApiProperty({
+    type: Types.ObjectId,
+  })
+  departmentId: Types.ObjectId;
+}
+export class UserDTO extends User {
+  @ApiProperty({
+    type: String,
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
+
+  @ApiProperty({
+    type: Types.ObjectId,
+  })
+  userId: Types.ObjectId;
+
+  @ApiProperty({
     type: Date,
     required: true,
   })
@@ -46,4 +57,18 @@ export class User {
     required: true,
   })
   lastLogin: Date;
+}
+
+export class UserInputDTO extends User {
+  @ApiProperty({
+    type: String,
+    required: true,
+  })
+  oldPassword: string;
+
+  @ApiProperty({
+    type: String,
+    required: true,
+  })
+  password: string;
 }
